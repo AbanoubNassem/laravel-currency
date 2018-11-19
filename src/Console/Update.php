@@ -61,21 +61,21 @@ class Update extends Command
         // Get Settings
         $defaultCurrency = $this->currency->config('default');
 
-        if ($this->input->getOption('google')) {
-            // Get rates from google
-            return $this->updateFromGoogle($defaultCurrency);
+        //if ($this->input->getOption('google')) {
+        //    // Get rates from google
+        //    return $this->updateFromGoogle($defaultCurrency);
+        //}
+        //
+        //if ($this->input->getOption('openexchangerates')) {
+        if (! $api = $this->currency->config('api_key')) {
+            $this->error('An API key is needed from OpenExchangeRates.org to continue.');
+
+            return;
         }
 
-        if ($this->input->getOption('openexchangerates')) {
-            if (!$api = $this->currency->config('api_key')) {
-                $this->error('An API key is needed from OpenExchangeRates.org to continue.');
-
-                return;
-            }
-
-            // Get rates from OpenExchangeRates
-            return $this->updateFromOpenExchangeRates($defaultCurrency, $api);
-        }
+        // Get rates from OpenExchangeRates
+        return $this->updateFromOpenExchangeRates($defaultCurrency, $api);
+        //}
     }
 
     /**
@@ -128,18 +128,17 @@ class Update extends Command
                 continue;
             }
 
-            $response = $this->request('http://finance.google.com/finance/converter?a=1&from=' . $defaultCurrency . '&to=' . $code);
+            $response = $this->request('http://finance.google.com/finance/converter?a=1&from='.$defaultCurrency.'&to='.$code);
 
             if (Str::contains($response, 'bld>')) {
                 $data = explode('bld>', $response);
                 $rate = explode($code, $data[1])[0];
-                
+
                 $this->currency->getDriver()->update($code, [
                     'exchange_rate' => $rate,
                 ]);
-            }
-            else {
-                $this->warn('Can\'t update rate for ' . $code);
+            } else {
+                $this->warn('Can\'t update rate for '.$code);
                 continue;
             }
         }
